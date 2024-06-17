@@ -1,16 +1,11 @@
-def user_db_schema(user) -> dict:
+# Esquema de la DB User
+def user_schema(user, field) -> dict:
     return {
-        "id": str(user["_id"]),
+        field: str(user[field]),
         "login": user["login"],
         "password": user["password"],
         "enabled": user["enabled"]    
     }
-    
-def users_db_schema(users) -> list:
-    return [user_db_schema(user) for user in users]
-
-def user_schema(user) -> dict:
-    return {
-        "login": user["login"],
-        "enabled": user["enabled"]    
-    }
+       
+def users_schema(users, field) -> list:
+    return [user_schema(user, field) for user in users]

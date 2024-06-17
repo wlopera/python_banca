@@ -1,14 +1,17 @@
 ### Clase usuario de negocio ###
 
-from pydantic import BaseModel   # Permite crear una Entidad
+from pydantic import BaseModel, Field   # Permite crear una Entidad
 from typing import Optional
+from bson import ObjectId
 
 class User_db(BaseModel):
-    id: Optional[str] = None # Implica que es opcional
+    _id: Optional[ObjectId] = None
     login: str
-    password: str
+    password: Optional[str] = None
     enabled: int
     
-class User(BaseModel):
+class User_business(BaseModel):
+    id: str
     login: str
-    enabled: int    
+    password: Optional[str] = None
+    enabled: int        
