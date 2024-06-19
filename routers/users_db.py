@@ -96,7 +96,7 @@ def modify_user(key:str, value:str, id:str, user_business: User_business, messag
         update_data = {
             key: value
         }
-        response = db_client.users.update_one({"_id": ObjectId(id+4)},  {"$set": update_data})  
+        response = db_client.users.update_one({"_id": ObjectId(id)},  {"$set": update_data})  
         
         # Validar si se realizo el cambio
         if response.modified_count == 0:
