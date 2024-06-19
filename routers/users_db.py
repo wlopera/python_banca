@@ -43,15 +43,8 @@ async def setEnabled(user_business:User_business):
 # API modificar password
 @router.put("/password/",  response_model=User_business)
 async def setPassword(user_business:User_business):
-    try:
-        update_data = {
-            'password': user_business.password
-        } 
-        
-        db_client.users.update_one({"_id": ObjectId(user_business.id)},  {"$set": update_data})
-        return user_business
-    except:
-        return "No se ha actualizado el password"  
+     return modify_user('password', user_business.password, user_business.id, user_business, "No se ha actualizado el password del usuario" )
+
 
 # API modificar tipo de usuario
 @router.put("/type/",  response_model=User_business)
@@ -63,9 +56,8 @@ async def setType(user_business:User_business):
 @router.post("/add/", response_model= User_business, status_code=status.HTTP_201_CREATED )
 async def add_user(user:User_db):
     if type(search_user("login", user.login)) == User_db:
-         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El usuario ya existe") 
-    else:
-           
+         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": "El usuario ya existe"}) 
+    else:           
         # Crear usuario DB y convertir a Json
         user_db = User_db(login=user.login, password =user.password, enabled=user.enabled)
 
@@ -79,7 +71,7 @@ async def add_user(user:User_db):
         return convert_to_user_business(new_user)
         
             
-# Funcion para consultar un usuario por campo generico
+# Consultar usuario por campo generico
 def search_user(field: str, key):    
     try:
         user_db = db_client.users.find_one({field: key})        
@@ -88,7 +80,7 @@ def search_user(field: str, key):
         return {"error": "No se encontro usuario"}
     
     
-# Función para convertir de User_db a User_business
+# Convertir de User_db a User_business
 def convert_to_user_business(user_db):
     return User_business(
         id=str(user_db['_id']),
@@ -99,14 +91,16 @@ def convert_to_user_business(user_db):
         type=user_db['type']
     )
     
-def modify_user(key:str, value:str, id:str, user_business: User_business, error:str):
+def modify_user(key:str, value:str, id:str, user_business: User_business, message:str):
     try:        
         update_data = {
             key: value
         }
-        response = db_client.users.update_one({"_id": ObjectId(id+4)},  {"$set": update_data})  
+        response = db_client.users.update_one({"_id": ObjectId(id)},  {"$set": update_data})  
+        
+        # Validar si se realizo el cambio
         if response.modified_count == 0:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": str(error)})
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": str(message)})
         else:
             return user_business
     except HTTPException as http_exception:
