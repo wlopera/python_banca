@@ -38,15 +38,7 @@ async def user(userLogin:UserLogin):
 # API activar o inactivar usuario
 @router.put("/enabled/",  response_model=User_business)
 async def setEnabled(user_business:User_business):
-    try:
-        update_data = {
-            'enabled': user_business.enabled
-        }   
-        db_client.users.update_one({"_id": ObjectId(user_business.id)},  {"$set": update_data})
-        return user_business
-    except:
-        return "No se ha actualizado el estado del usuario"
-
+    return modify_user('enabled', user_business.enabled, user_business.id, user_business, "No se ha actualizado el estado del usuario" )
     
 # API modificar password
 @router.put("/password/",  response_model=User_business)
@@ -61,7 +53,12 @@ async def setPassword(user_business:User_business):
     except:
         return "No se ha actualizado el password"  
 
-
+# API modificar tipo de usuario
+@router.put("/type/",  response_model=User_business)
+async def setType(user_business:User_business):
+    return modify_user('type', user_business.type, user_business.id, user_business, "No se ha actualizado el tipo de usuario" )
+    
+    
 # Crear usuario
 @router.post("/add/", response_model= User_business, status_code=status.HTTP_201_CREATED )
 async def add_user(user:User_db):
@@ -98,5 +95,23 @@ def convert_to_user_business(user_db):
         login=user_db['login'],
         # Comentar para no enviar al frontend
         password=user_db['password'],
-        enabled=user_db['enabled']
+        enabled=user_db['enabled'],
+        type=user_db['type']
     )
+    
+def modify_user(key:str, value:str, id:str, user_business: User_business, error:str):
+    try:        
+        update_data = {
+            key: value
+        }
+        response = db_client.users.update_one({"_id": ObjectId(id+4)},  {"$set": update_data})  
+        if response.modified_count == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": str(error)})
+        else:
+            return user_business
+    except HTTPException as http_exception:
+        print(f"Excepción manejada: {http_exception}")
+        raise http_exception
+    except Exception as e:
+        print(f"Excepción no manejada: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"error": str(e)})

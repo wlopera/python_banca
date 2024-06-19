@@ -9,9 +9,11 @@ class User_db(BaseModel):
     login: str
     password: Optional[str] = None
     enabled: int
+    type: Optional[str] = None
     
 class User_business(BaseModel):
     id: str
     login: str
     password: Optional[str] = None
-    enabled: int        
+    enabled: int   
+    type: Optional[str] = None     
