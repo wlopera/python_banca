@@ -15,7 +15,7 @@ ver Proyecto recat-banca: https://github.com/wlopera/react_banca
     *  Tipo de transacciones
     *  
 ![image](https://github.com/wlopera/python_banca/assets/7141537/fa8cfd9b-7f87-49b7-845d-4d6b89c80e6e)
-Nota: MondoDB
+Nota: MongoDB
 
 * React: Web del banco
     *  Admin:  administrar usuarios y cuentas 
@@ -442,6 +442,208 @@ def convert_to_user_business(user_db):
 ![image](https://github.com/wlopera/python_banca/assets/7141537/e6958121-0dc9-4acb-934b-60622aa07cd7)
 
 ![image](https://github.com/wlopera/python_banca/assets/7141537/f952c3f5-6bf8-424c-a778-704cf40b7039)
+
+
+### Nuevo modelo de Datos para MongoDB
+
+![image](https://github.com/wlopera/python_banca/assets/7141537/1d14c486-64d8-45ee-9fd8-26a5ec0c691b)
+
+
+** Crear cliente y cuentas en mongoDB
+** Crear API Python para consultar el cliente y sus cuentas asociadas
+
+#### client.py
+```
+### Clase cliente de negocio y cliente DB ###
+
+from pydantic import BaseModel
+from typing import Optional, List
+from bson import ObjectId
+from db.models.account import Account
+
+"""
+    Clase: Clientes de base de datos
+    wlopera
+    @Jun 2024
+""" 
+class Client_db(BaseModel):
+    _id: Optional[ObjectId] = None
+    identification: str
+    name: str
+    email:str
+    phone: str
+    accounts: Optional[List[str]] = None
+        
+            
+"""
+    Clase: Clientes simple (con id de las cuentas)
+    wlopera
+    @Jun 2024
+"""         
+class Client(BaseModel):
+    id: str
+    identification: str
+    name: str
+    email:str
+    phone: str
+    accounts: Optional[List[str]] = None
+    
+    
+"""
+    Clase: Clientes completos (con datos de las cuentas)
+    wlopera
+    @Jun 2024
+"""     
+class Client_full(BaseModel):
+    id: str
+    identification: str
+    name: str
+    email:str
+    phone: str
+    accounts: Optional[List[Account]] = None   
+```
+
+#### account.py
+```
+### Clase cuentas de negocio y cuentas DB ###
+
+from pydantic import BaseModel
+from typing import Optional, List
+from bson import ObjectId
+
+"""
+    Clase: Cuentas del cliente en base de datos
+    wlopera
+    @Jun 2024
+"""             
+class Account_db(BaseModel):
+    _id: Optional[ObjectId] = None
+    balance: float
+    idTypeAccount: str    
+    transactions: Optional[List[str]] = None
+    date: str
+         
+"""
+    Clase: Cuentas del cliente (negocio)
+    wlopera
+    @Jun 2024
+"""             
+class Account(BaseModel):
+    id: str
+    balance: float
+    idTypeAccount: str    
+    transactions: Optional[List[str]] = None
+    date: str
+```
+
+client_db.py
+```
+### CLIENTES DB API ###
+from fastapi import APIRouter, HTTPException, status
+from db.models.client import Client, Client_full
+from db.models.account import Account
+from db.client import db_client
+from bson import ObjectId
+
+router = APIRouter(
+    prefix='/clients',
+    tags=["Clientes"],
+    responses={status.HTTP_404_NOT_FOUND: {'message':"No encontrado"}}
+)
+
+"""
+    API: Clientes simple (con id de las cuentas)
+    wlopera
+    @Jun 2024
+"""
+@router.get('/', response_model=list[Client])
+async def getClients():
+    clients_db = db_client.clients.find()
+    clients = []
+    for client_db in clients_db:   
+        account = []
+        for account_id in client_db.get('accounts', []):
+            account.append(str(account_id))               
+        clients.append(create_client(client_db, account))
+        
+return clients
+
+"""
+    API: Clientes completa (con datos de las cuentas)
+    wlopera
+    @Jun 2024
+"""
+@router.get('/full/', response_model=list[Client_full])
+async def getClientsFull():
+    clients_db = db_client.clients.find()
+    clients = []
+    for client_db in clients_db:
+        accounts = []
+        for account_id in client_db.get('accounts', []):
+            account_db = db_client.accounts.find_one({"_id": account_id})
+            accounts.append(create_account(account_db))
+        clients.append(create_client_full(client_db, accounts)) 
+        
+return clients
+
+"""
+    Metodo: Crear objeto cliente simple
+    client_db(Client_db): Datos del cliente de base de datos
+    @accounts(list[str]): Lista de id de cuentas del cliente (negocio)
+    wlopera
+    @Jun 2024
+    return  Datos simple del cliente (negocio)
+"""
+def create_client(client_db, accounts):
+    return Client(
+        id= str(client_db['_id']),
+        identification= client_db['identification'],
+        name= client_db['name'],
+        email= client_db['email'],
+        phone= client_db['phone'],
+        accounts= accounts
+)
+
+"""
+    Meotodo: Crear objeto cliente completa
+    client_db(Client_db): Datos del cliente de base de datos
+    @accounts(list[Account]): Lista de  cuentas del cliente (negocio)
+    wlopera
+    @Jun 2024
+    return  Datos completos del cliente (negocio)
+"""
+def create_client_full(client_db, accounts):
+    return Client_full(
+        id= str(client_db['_id']),
+        identification= client_db['identification'],
+        name= client_db['name'],
+        email= client_db['email'],
+        phone= client_db['phone'],
+        accounts= accounts
+    )
+    
+"""
+    Crear objeto cuentas
+    account_db(Account_db): Datos de la cuenta de base de datos
+    wlopera
+    @Jun 2024
+    return  Datos de la cuenta del cliente (negocio)
+"""
+def create_account(account_db):
+    return Account(
+        id= str(account_db['_id']),
+        balance= account_db['balance'],
+        idTypeAccount= account_db['idTypeAccount'],
+        date= account_db['date'], 
+   )
+```
+
+#### Consulta clientes simple
+![image](https://github.com/wlopera/python_banca/assets/7141537/e13dd20e-f498-49be-a4d9-089fa7f4ec7e)
+
+#### Consulta clientes completas
+![image](https://github.com/wlopera/python_banca/assets/7141537/a3328b14-2224-4930-b5d4-3cada09e75be)
+
 
 
 
