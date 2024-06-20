@@ -2,6 +2,10 @@
 
 Proyecto de estudio de un Banco que permite conectarse como administrador y generar usuarios, cuentas y transacciones y como usuario permite conectarse, consultar cuentas y realizar transacciones (Pagos y transferencias bancarias).
 
+ver: doc/Proyecto-banca-backend.docx
+
+ver Proyecto recat-banca: https://github.com/wlopera/react_banca
+
 * Python: APIs de servicios
     *  Usuarios
     *  Clientes
@@ -19,8 +23,8 @@ Nota: MondoDB
 
 ![image](https://github.com/wlopera/python_banca/assets/7141537/3df166a1-92bd-4741-a49f-0201a6cfb127)
 
-
 * React Native: Consulta y transacciones bancarias solo para usuarios
+  
 ![image](https://github.com/wlopera/python_banca/assets/7141537/ce07cbf1-8a76-4877-9158-2d2594132d4a)
 
 ## Python
