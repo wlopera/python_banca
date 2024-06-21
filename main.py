@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import users_db
+from routers import users_db, clients_db, accounts_db
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -18,3 +18,5 @@ app.add_middleware(
 )
 # Routers
 app.include_router(users_db.router)
+app.include_router(clients_db.router)
+app.include_router(accounts_db.router)

@@ -1,14 +1,14 @@
 ### USER DB API ###
 from fastapi import APIRouter, HTTPException, status
 from db.models.user import User_db, User_business
-from db.schemas.user import user_schema, users_schema
+from db.schemas.user import users_schema
 from db.client import db_client
 from bson import ObjectId
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/users",
                    tags=["Usuarios"],
-                   responses={404: {'message':"No Encontrado"}})
+                   responses={status.HTTP_404_NOT_FOUND: {'message':"No Encontrado"}})
 
 class UserLogin(BaseModel):
     login: str

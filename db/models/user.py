@@ -1,6 +1,6 @@
-### Clase usuario de negocio ###
+### Clase usuario de negocio y usuario DB ###
 
-from pydantic import BaseModel, Field   # Permite crear una Entidad
+from pydantic import BaseModel   # Permite crear una Entidad
 from typing import Optional
 from bson import ObjectId
 
